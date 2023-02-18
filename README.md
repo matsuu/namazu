@@ -2,6 +2,30 @@
 
 [DMDATA.JP](https://dmdata.jp)経由で緊急地震速報（予報）を受け取ってSNSに投げるプログラム一式
 
+## Flow
+
+```mermaid
+flowchart LR
+  subgraph 気象庁
+    J[JPOS]-->E[EEW System]
+  end
+    E-->D[DMDATA.JP]
+  subgraph DM-D.S.S
+    D
+  end
+  D--WebSocket-->N(namazu)
+  subgraph namazu
+    N--Pub-->Z((ZeroMQ))
+    Z--Sub--> NN(namazu2nostr) & NM(namazu2mastodon)
+  end
+  NN--WebSocket-->SN[nostr]
+  NM--REST API-->SM[mastodon]
+  subgraph SNS
+    SN
+    SM
+  end
+```
+
 ## 投稿先
 
 * mastodon
