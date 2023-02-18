@@ -13,6 +13,10 @@ import (
 	"golang.org/x/exp/slog"
 )
 
+const (
+	ZmqSubscribeType = "VXSE45"
+)
+
 var defaultRelays = []string{
 	// "ws://127.0.0.1:7001",
 
@@ -179,7 +183,7 @@ func Run(ctx context.Context, nsec string) error {
 			slog.Error("Failed to dial zmq4 pubsub", err)
 			return err
 		}
-		if err := sub.SetOption(zmq4.OptionSubscribe, "VXSE45"); err != nil {
+		if err := sub.SetOption(zmq4.OptionSubscribe, ZmqSubscribeType); err != nil {
 			slog.Error("Failed to set option for subscribe", err)
 			return err
 		}
