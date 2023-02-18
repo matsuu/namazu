@@ -5,7 +5,7 @@
 ## 投稿先
 
 * mastodon
-    * [@namazu@matsuu.org](https://fedi.matsuu.org/@namazu)
+    * [@namazu@fedi.matsuu.org](https://fedi.matsuu.org/@namazu)
 * nostr
     * [npub1namazu7um9xvgfpax6yrk9tl3segxpgac67jx7cuttzqp7usem9sqavlhz](https://iris.to/npub1namazu7um9xvgfpax6yrk9tl3segxpgac67jx7cuttzqp7usem9sqavlhz)
 
