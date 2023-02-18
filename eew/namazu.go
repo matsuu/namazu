@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	ZmqEndpoint = "tcp://127.0.0.1:5563"
+	DefaultZmqEndpoint = "tcp://127.0.0.1:5563"
 )
 
 type LatLng struct {

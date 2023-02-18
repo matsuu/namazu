@@ -142,7 +142,7 @@ func ParseSocketResponse(resp io.Reader) (*SocketResponse, error) {
 	return nil, fmt.Errorf("unknown response: %v", s)
 }
 
-func Run(apiKey string) error {
+func Run(apiKey, zmqEndpoint string) error {
 	if apiKey == "" {
 		return fmt.Errorf("no api key")
 	}
@@ -205,7 +205,7 @@ func Run(apiKey string) error {
 	ctx := context.Background()
 	pub := zmq4.NewPub(ctx)
 	defer pub.Close()
-	if err := pub.Listen(ZmqEndpoint); err != nil {
+	if err := pub.Listen(zmqEndpoint); err != nil {
 		slog.Error("Failed to listen zmq4 pubsub", err)
 		return err
 	}
