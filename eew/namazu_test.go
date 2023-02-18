@@ -26,6 +26,7 @@ func TestParseXml(t *testing.T) {
 			t.Errorf("failed to open sample xml: %v", d.File)
 		}
 		content, err := NewContent(f)
+		f.Close()
 		if err != nil {
 			t.Errorf("failed to parseXml: %v", err)
 		}
