@@ -113,7 +113,7 @@ E:
 	return relays, nil
 }
 
-func Run(ctx context.Context, nsec string) error {
+func Run(ctx context.Context, nsec, zmqEndpoint string) error {
 	var sk string
 	if nsec != "" {
 		if _, s, err := nip19.Decode(nsec); err != nil {
@@ -179,7 +179,7 @@ func Run(ctx context.Context, nsec string) error {
 
 		sub := zmq4.NewSub(ctx)
 		defer sub.Close()
-		if err := sub.Dial("tcp://127.0.0.1:5563"); err != nil {
+		if err := sub.Dial(zmqEndpoint); err != nil {
 			slog.Error("Failed to dial zmq4 pubsub", err)
 			return err
 		}
