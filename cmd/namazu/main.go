@@ -9,9 +9,6 @@ import (
 )
 
 func main() {
-	var logger = slog.New(slog.NewTextHandler(os.Stderr))
-	slog.SetDefault(logger)
-
 	var apiKey string
 	flag.StringVar(&apiKey, "apikey", "", "API Key for dmdata.jp")
 

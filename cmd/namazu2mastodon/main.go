@@ -11,9 +11,6 @@ import (
 )
 
 func main() {
-	var logger = slog.New(slog.NewTextHandler(os.Stderr))
-	slog.SetDefault(logger)
-
 	var zmqEndpoint string
 	flag.StringVar(&zmqEndpoint, "zmq", eew.DefaultZmqEndpoint, "connect to namazu endpoint")
 

@@ -10,8 +10,6 @@ import (
 	"golang.org/x/exp/slog"
 )
 
-var logger = slog.New(slog.NewTextHandler(os.Stderr))
-
 func main() {
 
 	var nsec string
@@ -34,6 +32,6 @@ func main() {
 
 	ctx := context.Background()
 	if err := nostr.Run(ctx, nsec, zmqEndpoint); err != nil {
-		logger.Error("Failed to send to nostr", err)
+		slog.Error("Failed to send to nostr", err)
 	}
 }
