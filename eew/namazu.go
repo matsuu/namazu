@@ -29,22 +29,22 @@ func (l *LatLng) String() string {
 	prefixLat := ""
 	// 0はNとする
 	if l.Lat >= 0 {
-		prefixLat = "N"
+		prefixLat = "北緯"
 	} else {
-		prefixLat = "S"
+		prefixLat = "南緯"
 	}
 	lat := strconv.FormatFloat(math.Abs(l.Lat), 'f', -1, 64)
 
 	// 0はEとする
 	prefixLng := ""
 	if l.Lng >= 0 {
-		prefixLng = "E"
+		prefixLng = "東経"
 	} else {
-		prefixLng = "W"
+		prefixLng = "西経"
 	}
 	lng := strconv.FormatFloat(math.Abs(l.Lng), 'f', -1, 64)
 
-	return fmt.Sprintf("%s%s/%s%s", prefixLat, lat, prefixLng, lng)
+	return fmt.Sprintf("%s%s度、%s%s度", prefixLat, lat, prefixLng, lng)
 }
 
 type Depth float64
@@ -63,7 +63,7 @@ func (d *Depth) String() string {
 	if v == 0 {
 		v = 10000
 	}
-	return fmt.Sprintf("%skm", strconv.FormatFloat(float64(v/1000), 'f', -1, 64))
+	return fmt.Sprintf("約%skm", strconv.FormatFloat(float64(v/1000), 'f', -1, 64))
 }
 
 type ReportTime time.Time
@@ -88,18 +88,18 @@ func (i *Intensity) String() string {
 	from := r.Replace(i.From)
 	to := r.Replace(i.To)
 	if to == "over" {
-		return fmt.Sprintf("%s以上", from)
+		return fmt.Sprintf("震度%s以上", from)
 	}
-	return to
+	return fmt.Sprintf("震度%s", to)
 }
 
 type Magnitude string
 
 func (m Magnitude) String() string {
 	if m == "" {
-		return "マグニチュード不明"
+		return "不明"
 	}
-	return fmt.Sprintf("M%s", string(m))
+	return fmt.Sprintf("%s", string(m))
 }
 
 type Serial int
@@ -242,6 +242,6 @@ func (c *Content) ParseCoordinate(coordinate string) error {
 }
 
 func (c Content) String() string {
-	return fmt.Sprintf("%s%s\n%sごろ%s（%s）で最大震度%s（%s）の地震が発生。震源の深さは%s。\nhttps://www.data.jma.go.jp/multi/quake/quake_detail.html?eventID=%s&lang=jp\n#earthquake", c.Serial, c.IsLast, c.Time, c.AreaName, c.LatLng, c.Intensity, c.Magnitude, c.Depth, c.EventId)
+	return fmt.Sprintf("%s%s\n%sごろ、地震がありました。\n震源地は%s（%s）で震源の深さは%s、地震の規模（マグニチュード）は%sと推定されます。\nこの地震により観測された最大震度は%sです。\nhttps://www.data.jma.go.jp/multi/quake/quake_detail.html?eventID=%s&lang=jp\n#earthquake", c.Serial, c.IsLast, c.Time, c.AreaName, c.LatLng, c.Depth, c.Magnitude, c.Intensity, c.EventId)
 
 }
