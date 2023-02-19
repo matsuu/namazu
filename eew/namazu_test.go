@@ -13,11 +13,11 @@ func TestParseXml(t *testing.T) {
 	tests := []data{
 		{
 			File:    "samples/77_01_01_110311_VXSE45.xml",
-			Message: "第23報\n11日14時46分ごろ三陸沖（N38.1/E142.9）で最大震度6強（M8.4）の地震が発生。震源の深さは10km。\nhttps://www.data.jma.go.jp/multi/quake/quake_detail.html?eventID=20110311144640&lang=jp\n#earthquake",
+			Message: "第23報\n11日14時46分ごろ、地震がありました。\n震源地は三陸沖（北緯38.1度、東経142.9度）で震源の深さは約10km、地震の規模（マグニチュード）は8.4と推定されます。\nこの地震により観測された最大震度は震度6強です。\nhttps://www.data.jma.go.jp/multi/quake/quake_detail.html?eventID=20110311144640&lang=jp\n#earthquake",
 		},
 		{
 			File:    "samples/77_01_02_110311_VXSE45.xml",
-			Message: "第23報\n不明ごろ不明（経緯不明）で最大震度不明（マグニチュード不明）の地震が発生。震源の深さは不明。\nhttps://www.data.jma.go.jp/multi/quake/quake_detail.html?eventID=20110311144640&lang=jp\n#earthquake",
+			Message: "第23報\n不明ごろ、地震がありました。\n震源地は不明（経緯不明）で震源の深さは不明、地震の規模（マグニチュード）は不明と推定されます。\nこの地震により観測された最大震度は不明です。\nhttps://www.data.jma.go.jp/multi/quake/quake_detail.html?eventID=20110311144640&lang=jp\n#earthquake",
 		},
 	}
 	for _, d := range tests {
