@@ -127,6 +127,7 @@ type Content struct {
 	Intensity *Intensity
 	Serial    Serial
 	IsLast    IsLast
+	Url       string
 }
 
 func NewContent(r io.Reader) (*Content, error) {
@@ -196,6 +197,11 @@ func NewContent(r io.Reader) (*Content, error) {
 			content.IsLast = IsLast(true)
 		}
 	}
+
+	if t, err := time.Parse("20060102150405", content.EventId); err == nil {
+		content.Url = fmt.Sprintf("https://earthquake.tenki.jp/bousai/earthquake/detail/%s.html", t.Format("2006/01/02/2006-01-02-15-04-05"))
+	}
+
 	return &content, nil
 }
 
@@ -242,6 +248,6 @@ func (c *Content) ParseCoordinate(coordinate string) error {
 }
 
 func (c Content) String() string {
-	return fmt.Sprintf("%s%s\n%sごろ、地震がありました。\n震源地は%s（%s）で震源の深さは%s、地震の規模（マグニチュード）は%sと推定されます。\nこの地震により観測された最大震度は%sです。\nhttps://www.data.jma.go.jp/multi/quake/quake_detail.html?eventID=%s&lang=jp\n#earthquake", c.Serial, c.IsLast, c.Time, c.AreaName, c.LatLng, c.Depth, c.Magnitude, c.Intensity, c.EventId)
+	return fmt.Sprintf("%s%s\n%sごろ、地震がありました。\n震源地は%s（%s）で震源の深さは%s、地震の規模（マグニチュード）は%sと推定されます。\nこの地震により観測された最大震度は%sです。\n%s\n#earthquake", c.Serial, c.IsLast, c.Time, c.AreaName, c.LatLng, c.Depth, c.Magnitude, c.Intensity, c.Url)
 
 }
