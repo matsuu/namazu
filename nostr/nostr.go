@@ -17,7 +17,7 @@ import (
 
 const (
 	ZmqSubscribeType = "VXSE45"
-	ZmqRelayEndpoint = "ipc://nostr-relays"
+	ZmqRelayEndpoint = "tcp://127.0.0.1:5564"
 )
 
 var defaultRelays = []string{
