@@ -3,6 +3,8 @@ package mastodon
 import (
 	"bytes"
 	"context"
+	"sync"
+	"time"
 
 	"github.com/go-zeromq/zmq4"
 	"github.com/matsuu/namazu/eew"
@@ -15,14 +17,15 @@ const (
 )
 
 type Event struct {
-	XmlId   string
-	Serial  int
-	Message string
-	MstdnId mastodon.ID
+	XmlId     string
+	Serial    int
+	Message   string
+	MstdnId   mastodon.ID
+	ExpiresAt time.Time
 }
 
 func Run(ctx context.Context, zmqEndpoint, mstdnServer, clientId, clientSecret, accessToken string) error {
-	sub := zmq4.NewSub(ctx)
+	sub := zmq4.NewSub(ctx, zmq4.WithAutomaticReconnect(true))
 	defer sub.Close()
 	if err := sub.Dial(zmqEndpoint); err != nil {
 		slog.Error("Failed to dial zmq4 pubsub", err, slog.Any("zmq", zmqEndpoint))
@@ -45,7 +48,20 @@ func Run(ctx context.Context, zmqEndpoint, mstdnServer, clientId, clientSecret, 
 	}
 	slog.Info("Succeed to get TimelineHome", slog.Any("home", h))
 
-	eventMap := make(map[string]Event)
+	var eventMap sync.Map
+	go func() {
+		ticker := time.NewTicker(time.Hour)
+		defer ticker.Stop()
+		for now := range ticker.C {
+			eventMap.Range(func(k, v any) bool {
+				if v.(Event).ExpiresAt.After(now) {
+					eventMap.Delete(k)
+				}
+				return true
+			})
+		}
+	}()
+
 	for {
 		msg, err := sub.Recv()
 		if err != nil {
@@ -69,7 +85,8 @@ func Run(ctx context.Context, zmqEndpoint, mstdnServer, clientId, clientSecret, 
 			Visibility: mastodon.VisibilityPublic,
 			Language:   "ja",
 		}
-		if prev, ok := eventMap[ev.XmlId]; ok {
+		if v, ok := eventMap.Load(ev.XmlId); ok {
+			prev := v.(Event)
 			// 過去報もしくは同じものが届いた場合はスキップ
 			if ev.Serial <= prev.Serial {
 				slog.Info("Skip old serial", slog.Any("now", ev), slog.Any("prev", prev))
@@ -90,7 +107,7 @@ func Run(ctx context.Context, zmqEndpoint, mstdnServer, clientId, clientSecret, 
 		}
 		slog.Info("Succeed to post status", slog.Any("status", s), slog.Any("toot", t))
 		ev.MstdnId = s.ID
-		eventMap[ev.XmlId] = ev
+		eventMap.Store(ev.XmlId, ev)
 	}
 	return nil
 }

@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/go-zeromq/zmq4"
@@ -36,11 +37,12 @@ var defaultRelays = []string{
 }
 
 type Event struct {
-	XmlId   string
-	Serial  int
-	Message string
-	NostrId string
-	RootId  string
+	XmlId     string
+	Serial    int
+	Message   string
+	NostrId   string
+	RootId    string
+	ExpiresAt time.Time
 }
 
 func getRelays(ctx context.Context, npub string) ([]string, error) {
@@ -166,7 +168,20 @@ func eventWorker(ctx context.Context, sub, relaysPub zmq4.Socket, sk string) err
 		return err
 	}
 
-	eventMap := make(map[string]Event)
+	var eventMap sync.Map
+	go func() {
+		ticker := time.NewTicker(time.Hour)
+		defer ticker.Stop()
+		for now := range ticker.C {
+			eventMap.Range(func(k, v any) bool {
+				if v.(Event).ExpiresAt.After(now) {
+					eventMap.Delete(k)
+				}
+				return true
+			})
+		}
+	}()
+
 	for {
 		slog.Info("Wait receive from pubsub")
 		msg, err := sub.Recv()
@@ -188,7 +203,8 @@ func eventWorker(ctx context.Context, sub, relaysPub zmq4.Socket, sk string) err
 		}
 
 		var tags nostr.Tags
-		if prev, ok := eventMap[ev.XmlId]; ok {
+		if v, ok := eventMap.Load(ev.XmlId); ok {
+			prev := v.(Event)
 			// 過去報もしくは同じものが届いた場合はスキップ
 			if ev.Serial <= prev.Serial {
 				slog.Info("Skip old serial", slog.Any("now", ev), slog.Any("prev", prev))
@@ -239,7 +255,7 @@ func eventWorker(ctx context.Context, sub, relaysPub zmq4.Socket, sk string) err
 		if ev.RootId == "" {
 			ev.RootId = e.ID
 		}
-		eventMap[ev.XmlId] = ev
+		eventMap.Store(ev.XmlId, ev)
 	}
 }
 
