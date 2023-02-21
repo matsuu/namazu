@@ -209,6 +209,7 @@ func Run(apiKey, zmqEndpoint string) error {
 		slog.Error("Failed to listen zmq4 pubsub", err)
 		return err
 	}
+	slog.Info("Succeed to listen zmq4 pubsub", slog.Any("endpoint", zmqEndpoint))
 
 	for {
 		var b []byte
