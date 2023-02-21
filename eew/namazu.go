@@ -248,6 +248,5 @@ func (c *Content) ParseCoordinate(coordinate string) error {
 }
 
 func (c Content) String() string {
-	return fmt.Sprintf("%s%s\n%sごろ、地震がありました。\n震源地は%s（%s）で震源の深さは%s、地震の規模（マグニチュード）は%sと推定されます。\nこの地震により観測された最大震度は%sです。\n%s\n#earthquake", c.Serial, c.IsLast, c.Time, c.AreaName, c.LatLng, c.Depth, c.Magnitude, c.Intensity, c.Url)
-
+	return fmt.Sprintf("%s%s\n%sごろ、地震がありました。\n震源地は%s（%s）で震源の深さは%s、地震の規模（マグニチュード）は%sと推定されます。\nこの地震による最大震度は%sです。\n%s\n#earthquake", c.Serial, c.IsLast, c.Time, c.AreaName, c.LatLng, c.Depth, c.Magnitude, c.Intensity, c.Url)
 }
