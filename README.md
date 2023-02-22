@@ -6,7 +6,7 @@
 
 ```mermaid
 flowchart LR
-  subgraph 気象庁
+  subgraph Japan Meteorological Agency
     J[EPOS]-->E[EEW System]
   end
     E-->D[DMDATA.JP]
