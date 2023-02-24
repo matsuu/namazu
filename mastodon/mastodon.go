@@ -81,9 +81,14 @@ func Run(ctx context.Context, zmqEndpoint, mstdnServer, clientId, clientSecret, 
 			Message: content.String(),
 		}
 		t := mastodon.Toot{
-			Status:     ev.Message,
-			Visibility: mastodon.VisibilityPublic,
-			Language:   "ja",
+			Status:   ev.Message,
+			Language: "ja",
+		}
+		// 最終報は公開、それ以外は未収載
+		if content.IsLast {
+			t.Visibility = mastodon.VisibilityPublic
+		} else {
+			t.Visibility = mastodon.VisibilityUnlisted
 		}
 		if v, ok := eventMap.Load(ev.XmlId); ok {
 			prev := v.(Event)
