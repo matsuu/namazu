@@ -81,9 +81,8 @@ func Run(ctx context.Context, zmqEndpoint, mstdnServer, clientId, clientSecret, 
 			Message: content.String(),
 		}
 		t := mastodon.Toot{
-			Status:     ev.Message,
-			Visibility: mastodon.VisibilityPublic,
-			Language:   "ja",
+			Status:   ev.Message,
+			Language: "ja",
 		}
 		if v, ok := eventMap.Load(ev.XmlId); ok {
 			prev := v.(Event)
@@ -98,6 +97,10 @@ func Run(ctx context.Context, zmqEndpoint, mstdnServer, clientId, clientSecret, 
 			} else {
 				t.InReplyToID = prev.MstdnId
 			}
+			// 初報は公開、それ以外は未収載
+			t.Visibility = mastodon.VisibilityUnlisted
+		} else {
+			t.Visibility = mastodon.VisibilityPublic
 		}
 
 		s, err := c.PostStatus(ctx, &t)
