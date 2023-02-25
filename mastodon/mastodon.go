@@ -84,12 +84,6 @@ func Run(ctx context.Context, zmqEndpoint, mstdnServer, clientId, clientSecret, 
 			Status:   ev.Message,
 			Language: "ja",
 		}
-		// 最終報は公開、それ以外は未収載
-		if content.IsLast {
-			t.Visibility = mastodon.VisibilityPublic
-		} else {
-			t.Visibility = mastodon.VisibilityUnlisted
-		}
 		if v, ok := eventMap.Load(ev.XmlId); ok {
 			prev := v.(Event)
 			// 過去報もしくは同じものが届いた場合はスキップ
@@ -103,6 +97,10 @@ func Run(ctx context.Context, zmqEndpoint, mstdnServer, clientId, clientSecret, 
 			} else {
 				t.InReplyToID = prev.MstdnId
 			}
+			// 初報は公開、それ以外は未収載
+			t.Visibility = mastodon.VisibilityUnlisted
+		} else {
+			t.Visibility = mastodon.VisibilityPublic
 		}
 
 		s, err := c.PostStatus(ctx, &t)
