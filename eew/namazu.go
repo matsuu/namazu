@@ -112,7 +112,7 @@ type IsLast bool
 
 func (l IsLast) String() string {
 	if l {
-		return "（最終報）"
+		return " *最終報*"
 	}
 	return ""
 }
@@ -248,5 +248,5 @@ func (c *Content) ParseCoordinate(coordinate string) error {
 }
 
 func (c Content) String() string {
-	return fmt.Sprintf("%s%s\n%sごろ、地震がありました。\n震源地は%s（%s）で震源の深さは%s、地震の規模（マグニチュード）は%sと推定されます。\nこの地震による最大震度は%sです。\n%s\n#緊急地震速報", c.Serial, c.IsLast, c.Time, c.AreaName, c.LatLng, c.Depth, c.Magnitude, c.Intensity, c.Url)
+	return fmt.Sprintf("*緊急地震速報（予報）* %s%s\n%sごろ、地震がありました。\n震源地は%s（%s）で震源の深さは%s、地震の規模（マグニチュード）は%s、この地震による最大震度は%sと推定されます。\n%s", c.Serial, c.IsLast, c.Time, c.AreaName, c.LatLng, c.Depth, c.Magnitude, c.Intensity, c.Url)
 }
