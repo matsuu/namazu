@@ -228,16 +228,18 @@ func eventWorker(ctx context.Context, sub zmq4.Socket, chRelays []chan<- nostr.E
 		}
 		e.Sign(sk)
 
-		succeedCount := 0
-		for _, ch := range chRelays {
+		failedCount := 0
+		for i, ch := range chRelays {
 			// 詰まっている場合はスキップ
 			select {
 			case ch <- e:
-				succeedCount++
+				slog.Info("Succeed to send events to channel", slog.Any("no", i))
 			default:
+				failedCount++
+				slog.Warn("Failed to send events to channel", slog.Any("no", i))
 			}
 		}
-		slog.Info("Succeed to send events to channels", slog.Any("event", e), slog.Any("succeedCount", succeedCount), slog.Any("failCount", len(chRelays)-succeedCount))
+		slog.Info("Succeed to send events to channels", slog.Any("event", e), slog.Any("totalCount", len(chRelays)), slog.Any("failedCount", failedCount))
 
 		// EventIDはreplyに使われるので記録しておく
 		ev.NostrId = e.ID
@@ -261,7 +263,7 @@ func relayWorker(ctx context.Context, sk string) ([]chan<- nostr.Event, error) {
 		relays = defaultRelays
 	}
 
-	chRelays := make([]chan<- nostr.Event, len(relays))
+	chRelays := make([]chan<- nostr.Event, 0, len(relays))
 
 	for _, url := range relays {
 		ch := make(chan nostr.Event, 10)
