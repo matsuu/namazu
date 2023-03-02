@@ -3,7 +3,6 @@ package nostr
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"sync"
 	"time"
@@ -17,7 +16,6 @@ import (
 
 const (
 	ZmqSubscribeType = "VXSE45"
-	ZmqRelayEndpoint = "tcp://127.0.0.1:5564"
 )
 
 var defaultRelays = []string{
@@ -140,29 +138,22 @@ func Run(ctx context.Context, nsec, zmqEndpoint string) error {
 		slog.Error("Failed to set option for zmq namazu", err)
 		return err
 	}
-	slog.Info("Succeed to dial zmq namazu", slog.Any("endpoint", ZmqRelayEndpoint))
+	slog.Info("Succeed to dial zmq namazu", slog.Any("endpoint", zmqEndpoint))
 
-	relaysPub := zmq4.NewPub(ctx)
-	defer relaysPub.Close()
-	if err := relaysPub.Listen(ZmqRelayEndpoint); err != nil {
-		slog.Error("Failed to listen relay pubsub", err)
-		return err
-	}
-	slog.Info("Succeed to listen zmq relay", slog.Any("endpoint", ZmqRelayEndpoint))
-
-	if err := relayWorker(ctx, sk); err != nil {
+	chRelays, err := relayWorker(ctx, sk)
+	if err != nil {
 		slog.Error("Failed to run relayWorker", err)
 		return err
 	}
 
-	if err := eventWorker(ctx, sub, relaysPub, sk); err != nil {
+	if err := eventWorker(ctx, sub, chRelays, sk); err != nil {
 		slog.Error("Failed to run eventWorker", err)
 	}
 
 	return nil
 }
 
-func eventWorker(ctx context.Context, sub, relaysPub zmq4.Socket, sk string) error {
+func eventWorker(ctx context.Context, sub zmq4.Socket, chRelays []chan<- nostr.Event, sk string) error {
 	pub, err := nostr.GetPublicKey(sk)
 	if err != nil {
 		return err
@@ -237,17 +228,18 @@ func eventWorker(ctx context.Context, sub, relaysPub zmq4.Socket, sk string) err
 		}
 		e.Sign(sk)
 
-		j, err := json.Marshal(e)
-		if err != nil {
-			slog.Error("Failed to Marshal event", err, slog.Any("event", e))
-			return err
+		failedCount := 0
+		for i, ch := range chRelays {
+			// 詰まっている場合はスキップ
+			select {
+			case ch <- e:
+				slog.Info("Succeed to send events to channel", slog.Any("no", i))
+			default:
+				failedCount++
+				slog.Warn("Failed to send events to channel", slog.Any("no", i))
+			}
 		}
-		t := []byte(msg.Frames[0])
-		msg = zmq4.NewMsgFrom(t, j)
-		if err := relaysPub.Send(msg); err != nil {
-			slog.Error("Failed to send msg to relaysPub", err, slog.Any("type", t), slog.Any("msg", msg))
-		}
-		slog.Info("Succeed to send msg to relaysPub", slog.Any("type", t), slog.Any("msg", msg))
+		slog.Info("Succeed to send events to channels", slog.Any("event", e), slog.Any("totalCount", len(chRelays)), slog.Any("failedCount", failedCount))
 
 		// EventIDはreplyに使われるので記録しておく
 		ev.NostrId = e.ID
@@ -259,10 +251,10 @@ func eventWorker(ctx context.Context, sub, relaysPub zmq4.Socket, sk string) err
 	}
 }
 
-func relayWorker(ctx context.Context, sk string) error {
+func relayWorker(ctx context.Context, sk string) ([]chan<- nostr.Event, error) {
 	pub, err := nostr.GetPublicKey(sk)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
 	relays, err := getRelays(ctx, pub)
@@ -271,40 +263,10 @@ func relayWorker(ctx context.Context, sk string) error {
 		relays = defaultRelays
 	}
 
-	for _, url := range relays {
-		ch := make(chan nostr.Event)
+	chRelays := make([]chan<- nostr.Event, 0, len(relays))
 
-		go func(ctx context.Context, url string, ch chan<- nostr.Event) {
-			defer close(ch)
-			sub := zmq4.NewSub(ctx, zmq4.WithAutomaticReconnect(true), zmq4.WithID(zmq4.SocketIdentity(url)))
-			defer sub.Close()
-			if err := sub.Dial(ZmqRelayEndpoint); err != nil {
-				slog.Error("Failed to dial zmq4 pubsub", err)
-				return
-			}
-			if err := sub.SetOption(zmq4.OptionSubscribe, ZmqSubscribeType); err != nil {
-				slog.Error("Failed to set option for subscribe", err)
-				return
-			}
-			slog.Info("Succeed to subscirbe from relaysPub", slog.Any("endpoint", ZmqRelayEndpoint))
-			for {
-				msg, err := sub.Recv()
-				if err != nil {
-					slog.Error("Failed to receive msg", err)
-					return
-				}
-				if msg.Frames == nil || len(msg.Frames) != 2 {
-					slog.Warn("received msg has unexpected frames", slog.Any("msg", msg))
-					continue
-				}
-				ev := nostr.Event{}
-				if err := json.Unmarshal(msg.Frames[1], &ev); err != nil {
-					slog.Error("Failed to unmarshal event", err, slog.Any("msg", msg))
-					continue
-				}
-				ch <- ev
-			}
-		}(ctx, url, ch)
+	for _, url := range relays {
+		ch := make(chan nostr.Event, 10)
 
 		go func(ctx context.Context, url string, ch <-chan nostr.Event) {
 			attempt := 1
@@ -344,7 +306,8 @@ func relayWorker(ctx context.Context, sk string) error {
 				relay.Close()
 			}
 		}(ctx, url, ch)
+		chRelays = append(chRelays, ch)
 	}
 
-	return nil
+	return chRelays, nil
 }
