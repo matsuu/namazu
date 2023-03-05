@@ -20,7 +20,7 @@ flowchart LR
   end
   NN--WebSocket-->SN[nostr]
   NM--REST API-->SM[mastodon]
-  NB--REST API-->SB[bluesky]
+  NB--AT Protocol-->SB[bluesky]
   subgraph SNS
     SN
     SM
