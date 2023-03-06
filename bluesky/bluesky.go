@@ -15,6 +15,7 @@ import (
 	lexutil "github.com/bluesky-social/indigo/lex/util"
 	"github.com/bluesky-social/indigo/xrpc"
 	"github.com/go-zeromq/zmq4"
+	"github.com/kylemcc/twitter-text-go/extract"
 	"github.com/matsuu/namazu/eew"
 	"golang.org/x/exp/slog"
 )
@@ -30,6 +31,27 @@ type Event struct {
 	FeedRef     *comatproto.RepoStrongRef
 	RootFeedRef *comatproto.RepoStrongRef
 	ExpiresAt   time.Time
+}
+
+// URLを抽出してEntitiesを生成
+func generateLinkEntities(txt string) []*appbsky.FeedPost_Entity {
+
+	entities := make([]*appbsky.FeedPost_Entity, 0)
+	for _, e := range extract.ExtractUrls(txt) {
+		url := e.Text
+		start := e.Range.Start
+		end := e.Range.Stop
+		entity := appbsky.FeedPost_Entity{
+			Index: &appbsky.FeedPost_TextSlice{
+				End:   int64(end),
+				Start: int64(start),
+			},
+			Type:  "link",
+			Value: url,
+		}
+		entities = append(entities, &entity)
+	}
+	return entities
 }
 
 func getXrpcClient(host string, authInfo *xrpc.AuthInfo) *xrpc.Client {
@@ -215,6 +237,8 @@ func Run(ctx context.Context, zmqEndpoint, pdsUrl, authFile string) error {
 					ev.RootFeedRef = prev.RootFeedRef
 				}
 			}
+
+			entities := generateLinkEntities(ev.Message)
 			record := comatproto.RepoCreateRecord_Input{
 				Collection: "app.bsky.feed.post",
 				Did:        xrpcc.Auth.Did,
@@ -223,6 +247,7 @@ func Run(ctx context.Context, zmqEndpoint, pdsUrl, authFile string) error {
 						Text:      ev.Message,
 						CreatedAt: time.Now().Format("2006-01-02T15:04:05.000Z"),
 						Reply:     reply,
+						Entities:  entities,
 					},
 				},
 			}

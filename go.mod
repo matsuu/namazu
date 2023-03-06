@@ -6,6 +6,7 @@ require (
 	github.com/antchfx/xmlquery v1.3.15
 	github.com/bluesky-social/indigo v0.0.0-20230303202417-361e299c404d
 	github.com/go-zeromq/zmq4 v0.15.0
+	github.com/kylemcc/twitter-text-go v0.0.0-20180726194232-7f582f6736ec
 	github.com/mattn/go-mastodon v0.0.6
 	github.com/nbd-wtf/go-nostr v0.13.1
 	golang.org/x/exp v0.0.0-20230213192124-5e25df0256eb
@@ -40,5 +41,6 @@ require (
 	golang.org/x/sys v0.5.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
+	gopkg.in/yaml.v1 v1.0.0-20140924161607-9f9df34309c0 // indirect
 	lukechampine.com/blake3 v1.1.7 // indirect
 )
