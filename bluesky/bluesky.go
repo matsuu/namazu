@@ -73,37 +73,38 @@ func createSession(ctx context.Context, host, authFile string) (*xrpc.Client, er
 	return xrpcc, nil
 }
 
-func refreshSession(ctx context.Context, host, authFile string) (*xrpc.Client, error) {
+func refreshSession(ctx context.Context, host, authFile string) error {
 	var authInfo xrpc.AuthInfo
 	in, err := os.Open(authFile)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	err = json.NewDecoder(in).Decode(&authInfo)
 	in.Close()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	xrpcc := getXrpcClient(host, &authInfo)
+	a := xrpcc.Auth
+	a.AccessJwt = a.RefreshJwt
 
 	ses, err := comatproto.SessionRefresh(ctx, xrpcc)
 	if err != nil {
 		slog.Error("Failed to session refresh", err, slog.Any("authInfo", authInfo))
-		return nil, err
+		return err
 	}
+	slog.Info("Succeed to session refresh", slog.Any("new", ses), slog.Any("old", authInfo))
 	out, err := os.Create(authFile)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	err = json.NewEncoder(out).Encode(ses)
 	out.Close()
 	if err != nil {
-		return nil, err
+		return err
 	}
-	// 旧authInfoは古いので作り直す
-	xrpcc, err = createSession(ctx, host, authFile)
-	return xrpcc, err
+	return err
 }
 
 func Run(ctx context.Context, zmqEndpoint, pdsUrl, authFile string) error {
@@ -119,10 +120,17 @@ func Run(ctx context.Context, zmqEndpoint, pdsUrl, authFile string) error {
 	}
 
 	xrpcc, err := createSession(ctx, pdsUrl, authFile)
-	// xrpcc, err := refreshSession(ctx, pdsUrl, authFile)
 	if err != nil {
-		slog.Error("Failed to create session", err)
-		return err
+		slog.Error("Failed to create session. try refresh", err)
+		err := refreshSession(ctx, pdsUrl, authFile)
+		if err != nil {
+			return err
+		}
+		xrpcc, err = createSession(ctx, pdsUrl, authFile)
+		if err != nil {
+			return err
+		}
+		slog.Info("Succeed to refresh session")
 	}
 	slog.Info("Succeed to create session")
 
@@ -166,21 +174,26 @@ func Run(ctx context.Context, zmqEndpoint, pdsUrl, authFile string) error {
 		}
 	}(ch)
 
-	// ticker := time.NewTicker(time.Hour)
-	// defer ticker.Stop()
-LOOP:
+	// 現時点でaccess tokenの有効期限は120分。60分ごとにrefreshしておく
+	// https://github.com/bluesky-social/atproto/blob/8dfcb4f9963823aeeaeeae143e05537dbcfd3b46/packages/pds/src/auth.ts#L40-L67
+	ticker := time.NewTicker(60 * time.Minute)
+	defer ticker.Stop()
 	for {
 		select {
-		// case <-ticker.C:
-		// 	var err error
-		// 	xrpcc, err = refreshSession(ctx, pdsUrl, authFile)
-		// 	if err != nil {
-		// 		return err
-		// 	}
+		case <-ticker.C:
+			err := refreshSession(ctx, pdsUrl, authFile)
+			if err != nil {
+				return err
+			}
+			xrpcc, err = createSession(ctx, pdsUrl, authFile)
+			if err != nil {
+				return err
+			}
+			slog.Info("Succeed to refresh session")
 		case ev, ok := <-ch:
 			if !ok {
 				slog.Warn("closed channel")
-				break LOOP
+				return fmt.Errorf("closed channel")
 			}
 			var reply *appbsky.FeedPost_ReplyRef
 			if v, ok := eventMap.Load(ev.XmlId); ok {
@@ -214,6 +227,7 @@ LOOP:
 				},
 			}
 
+			// TODO 投稿しようとして失敗したらsession再生成
 			resp, err := comatproto.RepoCreateRecord(ctx, xrpcc, &record)
 			if err != nil {
 				return fmt.Errorf("failed to create record: %w", err)
@@ -227,5 +241,4 @@ LOOP:
 			eventMap.Store(ev.XmlId, ev)
 		}
 	}
-	return nil
 }
