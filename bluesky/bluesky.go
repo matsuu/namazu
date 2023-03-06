@@ -263,6 +263,10 @@ func Run(ctx context.Context, zmqEndpoint, pdsUrl, authFile string) error {
 				Cid: resp.Cid,
 				Uri: resp.Uri,
 			}
+			// rootが設定されていなければ自分がrootになる
+			if ev.RootFeedRef == nil {
+				ev.RootFeedRef = ev.FeedRef
+			}
 			eventMap.Store(ev.XmlId, ev)
 		}
 	}
