@@ -64,9 +64,9 @@ func getXrpcClient(host string, authInfo *xrpc.AuthInfo) *xrpc.Client {
 
 }
 
-func createSessionByPassword(ctx context.Context, host, handle, password string) (*comatproto.SessionCreate_Output, error) {
+func createSessionByPassword(ctx context.Context, host, handle, password string) (*comatproto.ServerCreateSession_Output, error) {
 	xrpcc := getXrpcClient(host, nil)
-	ses, err := comatproto.SessionCreate(ctx, xrpcc, &comatproto.SessionCreate_Input{
+	ses, err := comatproto.ServerCreateSession(ctx, xrpcc, &comatproto.ServerCreateSession_Input{
 		Identifier: &handle,
 		Password:   password,
 	})
@@ -85,7 +85,7 @@ func createSession(ctx context.Context, host, authFile string) (*xrpc.Client, er
 		return nil, err
 	}
 	xrpcc := getXrpcClient(host, &authInfo)
-	ses, err := comatproto.SessionGet(ctx, xrpcc)
+	ses, err := comatproto.ServerGetSession(ctx, xrpcc)
 	if err != nil {
 		slog.Error("Failed to get session", err)
 		return nil, err
@@ -111,7 +111,7 @@ func refreshSession(ctx context.Context, host, authFile string) error {
 	a := xrpcc.Auth
 	a.AccessJwt = a.RefreshJwt
 
-	ses, err := comatproto.SessionRefresh(ctx, xrpcc)
+	ses, err := comatproto.ServerRefreshSession(ctx, xrpcc)
 	if err != nil {
 		slog.Error("Failed to session refresh", err, slog.Any("authInfo", authInfo))
 		return err
@@ -241,8 +241,8 @@ func Run(ctx context.Context, zmqEndpoint, pdsUrl, authFile string) error {
 			entities := generateLinkEntities(ev.Message)
 			record := comatproto.RepoCreateRecord_Input{
 				Collection: "app.bsky.feed.post",
-				Did:        xrpcc.Auth.Did,
-				Record: lexutil.LexiconTypeDecoder{
+				Repo:       xrpcc.Auth.Did,
+				Record: &lexutil.LexiconTypeDecoder{
 					Val: &appbsky.FeedPost{
 						Text:      ev.Message,
 						CreatedAt: time.Now().Format("2006-01-02T15:04:05.000Z"),
