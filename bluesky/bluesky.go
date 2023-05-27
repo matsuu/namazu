@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 	"time"
 
@@ -67,7 +68,7 @@ func getXrpcClient(host string, authInfo *xrpc.AuthInfo) *xrpc.Client {
 func createSessionByPassword(ctx context.Context, host, handle, password string) (*comatproto.ServerCreateSession_Output, error) {
 	xrpcc := getXrpcClient(host, nil)
 	ses, err := comatproto.ServerCreateSession(ctx, xrpcc, &comatproto.ServerCreateSession_Input{
-		Identifier: &handle,
+		Identifier: handle,
 		Password:   password,
 	})
 	return ses, err
@@ -113,10 +114,15 @@ func refreshSession(ctx context.Context, host, authFile string) error {
 
 	ses, err := comatproto.ServerRefreshSession(ctx, xrpcc)
 	if err != nil {
-		slog.Error("Failed to session refresh", err, slog.Any("authInfo", authInfo))
+		// 5xxならスキップ
+		if strings.HasPrefix(err.Error(), "XRPC ERROR 5") {
+			slog.Warn("Failed to refresh ression but server retruns 5xx error. skip", slog.Any("err", err), slog.Any("authInfo", authInfo))
+			return nil
+		}
+		slog.Error("Failed to refresh ression", err, slog.Any("authInfo", authInfo))
 		return err
 	}
-	slog.Info("Succeed to session refresh", slog.Any("new", ses), slog.Any("old", authInfo))
+	slog.Info("Succeed to refresh session", slog.Any("new", ses), slog.Any("old", authInfo))
 	out, err := os.Create(authFile)
 	if err != nil {
 		return err
@@ -196,9 +202,9 @@ func Run(ctx context.Context, zmqEndpoint, pdsUrl, authFile string) error {
 		}
 	}(ch)
 
-	// 現時点でaccess tokenの有効期限は120分。60分ごとにrefreshしておく
+	// 現時点でaccess tokenの有効期限は120分。30分ごとにrefreshしておく
 	// https://github.com/bluesky-social/atproto/blob/8dfcb4f9963823aeeaeeae143e05537dbcfd3b46/packages/pds/src/auth.ts#L40-L67
-	ticker := time.NewTicker(60 * time.Minute)
+	ticker := time.NewTicker(30 * time.Minute)
 	defer ticker.Stop()
 	for {
 		select {
