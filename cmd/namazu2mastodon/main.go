@@ -53,5 +53,6 @@ func main() {
 	ctx := context.Background()
 	if err := mastodon.Run(ctx, zmqEndpoint, mstdnServer, clientId, clientSecret, accessToken); err != nil {
 		slog.Error("Failed to send to mstdn", err)
+		os.Exit(1)
 	}
 }
