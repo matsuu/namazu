@@ -33,5 +33,6 @@ func main() {
 	ctx := context.Background()
 	if err := nostr.Run(ctx, nsec, zmqEndpoint); err != nil {
 		slog.Error("Failed to send to nostr", err)
+		os.Exit(1)
 	}
 }

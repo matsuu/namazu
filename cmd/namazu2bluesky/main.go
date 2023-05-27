@@ -39,5 +39,6 @@ func main() {
 	ctx := context.Background()
 	if err := bluesky.Run(ctx, zmqEndpoint, pdsUrl, authFile); err != nil {
 		slog.Error("Failed to send to bluesky", err)
+		os.Exit(1)
 	}
 }

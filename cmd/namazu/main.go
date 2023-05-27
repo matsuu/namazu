@@ -31,7 +31,7 @@ func main() {
 		err := eew.Run(apiKey, zmqEndpoint)
 		if err != nil {
 			slog.Error("Failed to run", err)
-			break
+			os.Exit(1)
 		}
 		slog.Info("Reconnect...")
 	}
