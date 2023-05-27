@@ -64,7 +64,7 @@ func getRelays(ctx context.Context, npub string) ([]string, error) {
 	defer relay.Close()
 
 	// 直近30日から探す
-	since := time.Now().Add(-30 * 24 * time.Hour)
+	since := nostr.Timestamp(time.Now().Add(-30 * 24 * time.Hour).Unix())
 
 	// NIP-65
 	filters := []nostr.Filter{{
@@ -77,7 +77,11 @@ func getRelays(ctx context.Context, npub string) ([]string, error) {
 
 	ctx, cancel := context.WithTimeout(ctx, 10*time.Second)
 	defer cancel()
-	sub := relay.Subscribe(ctx, filters)
+	sub, err := relay.Subscribe(ctx, filters)
+	if err != nil {
+		slog.Error("Failed to subscribe", err)
+		return nil, err
+	}
 	var ev *nostr.Event
 E:
 	// 最後に取得したevを利用する
@@ -221,7 +225,7 @@ func eventWorker(ctx context.Context, sub zmq4.Socket, chRelays []chan<- nostr.E
 		}
 		e := nostr.Event{
 			PubKey:    pub,
-			CreatedAt: time.Now(),
+			CreatedAt: nostr.Now(),
 			Kind:      1,
 			Tags:      tags,
 			Content:   ev.Message,
@@ -274,7 +278,7 @@ func relayWorker(ctx context.Context, sk string) ([]chan<- nostr.Event, error) {
 				relay, err := nostr.RelayConnect(ctx, url)
 				if err != nil {
 					slog.Error("failed to connect. Try next...", err, slog.Any("relay", url))
-					if attempt < 3600 {
+					if attempt < 64 {
 						attempt *= 2
 					}
 					time.Sleep(time.Duration(attempt) * time.Second)
@@ -288,19 +292,16 @@ func relayWorker(ctx context.Context, sk string) ([]chan<- nostr.Event, error) {
 					select {
 					case ev, ok := <-ch:
 						if !ok {
-							relay.Close()
-							return
+							break LOOP
 						}
-						status := relay.Publish(ctx, ev)
-						if status == nostr.PublishStatusFailed {
+						status, err := relay.Publish(ctx, ev)
+						if err != nil {
+							slog.Error("Failed to publish event to relay", err, slog.Any("event", ev), slog.Any("relay", url), slog.Any("status", status))
+						} else if status == nostr.PublishStatusFailed {
 							slog.Warn("Failed to publish event to relay", slog.Any("event", ev), slog.Any("relay", url), slog.Any("status", status))
 						} else {
 							slog.Info("Succeed to publish event to relay", slog.Any("event", ev), slog.Any("relay", url), slog.Any("status", status))
 						}
-					case err := <-relay.ConnectionError:
-						slog.Error("Connection error. retry...", err, slog.Any("relay", url))
-						time.Sleep(10 * time.Second)
-						break LOOP
 					}
 				}
 				relay.Close()
