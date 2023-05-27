@@ -42,11 +42,11 @@ func Run(ctx context.Context, zmqEndpoint, mstdnServer, clientId, clientSecret, 
 		ClientSecret: clientSecret,
 		AccessToken:  accessToken,
 	})
-	h, err := c.GetTimelineHome(ctx, nil)
+	u, err := c.GetAccountCurrentUser(ctx)
 	if err != nil {
 		return err
 	}
-	slog.Info("Succeed to get TimelineHome", slog.Any("home", h))
+	slog.Info("Succeed to get account info", slog.Any("user", u))
 
 	var eventMap sync.Map
 	go func() {
