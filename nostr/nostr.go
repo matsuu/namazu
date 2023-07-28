@@ -32,6 +32,7 @@ var defaultRelays = []string{
 	"wss://eden.nostr.land",
 	"wss://atlas.nostr.land",
 	"wss://relay.damus.io",
+	"wss://soloco.nl",
 }
 
 type Event struct {
