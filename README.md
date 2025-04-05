@@ -37,7 +37,7 @@ flowchart LR
 * nostr
     * [npub1namazu7um9xvgfpax6yrk9tl3segxpgac67jx7cuttzqp7usem9sqavlhz](https://iris.to/npub1namazu7um9xvgfpax6yrk9tl3segxpgac67jx7cuttzqp7usem9sqavlhz)
 * bluesky
-    * [@namazu.bsky.social](https://blue.amazingca.dev/?username=namazu.bsky.social)
+    * [@namazu.bsky.social](https://bsky.app/profile/namazu.bsky.social)
 * mixi2
     * [@namazu_eew](https://mixi.social/@namazu_eew)
 
