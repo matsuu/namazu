@@ -45,7 +45,7 @@ func main() {
 
 	ctx := context.Background()
 	if err := mixi2.Run(ctx, zmqEndpoint, authKey, authToken, userAgent); err != nil {
-		slog.Error("failed to send to mstdn", err)
+		slog.Error("failed to create post to mixi2", err)
 		os.Exit(1)
 	}
 }
