@@ -1,6 +1,6 @@
 module github.com/matsuu/namazu
 
-go 1.19
+go 1.24.1
 
 require (
 	connectrpc.com/connect v1.18.1
