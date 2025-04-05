@@ -16,15 +16,17 @@ flowchart LR
   D--WebSocket-->N(namazu)
   subgraph namazu
     N--Pub-->Z((ZeroMQ))
-    Z--Sub--> NN(namazu2nostr) & NM(namazu2mastodon) & NB(namazu2bluesky)
+    Z--Sub--> NN(namazu2nostr) & NM(namazu2mastodon) & NB(namazu2bluesky) & NM2(namazu2mixi2)
   end
   NN--WebSocket-->SN[nostr]
   NM--REST API-->SM[mastodon]
   NB--AT Protocol-->SB[bluesky]
+  NM2--Connect RPC-->SM2[mixi2]
   subgraph SNS
     SN
     SM
     SB
+    SM2
   end
 ```
 
@@ -36,6 +38,8 @@ flowchart LR
     * [npub1namazu7um9xvgfpax6yrk9tl3segxpgac67jx7cuttzqp7usem9sqavlhz](https://iris.to/npub1namazu7um9xvgfpax6yrk9tl3segxpgac67jx7cuttzqp7usem9sqavlhz)
 * bluesky
     * [@namazu.bsky.social](https://blue.amazingca.dev/?username=namazu.bsky.social)
+* mixi2
+    * [@namazu_eew](https://mixi.social/@namazu_eew)
 
 ## References
 
