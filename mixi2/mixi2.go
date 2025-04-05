@@ -46,7 +46,7 @@ func Run(ctx context.Context, zmqEndpoint, authKey, authToken, userAgent string)
 		defer ticker.Stop()
 		for now := range ticker.C {
 			eventMap.Range(func(k, v any) bool {
-				if v.(Event).ExpiresAt.After(now) {
+				if v.(Event).ExpiresAt.Before(now) {
 					eventMap.Delete(k)
 				}
 				return true
