@@ -83,10 +83,12 @@ func Run(ctx context.Context, zmqEndpoint, authKey, authToken, userAgent string)
 				slog.Info("skip old serial", slog.Any("now", ev), slog.Any("prev", prev))
 				continue
 			}
-		}
-		// mixi2はリプライをすると何度も現れることになるため最終報のみ送信する
-		if !content.IsLast {
-			continue
+			if prev.PostId == "" {
+				// 空になっているのはおかしいので警告
+				slog.Warn("Failed to get PostId", slog.Any("event", ev))
+			} else {
+				post.ReplyTo = &prev.PostId
+			}
 		}
 		resp, err := c.CreatePost(ctx, connect.NewRequest(post))
 		if err != nil {
