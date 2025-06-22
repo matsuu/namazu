@@ -8,7 +8,7 @@ require (
 	github.com/bluesky-social/indigo v0.0.0-20230524015214-dde615f101b6
 	github.com/go-zeromq/zmq4 v0.15.0
 	github.com/kylemcc/twitter-text-go v0.0.0-20180726194232-7f582f6736ec
-	github.com/matsuu/go-mixi2 v0.0.0-20250405135845-19ef7cda6332
+	github.com/matsuu/go-mixi2 v0.0.0-20250516121544-7a40752ddfa2
 	github.com/mattn/go-mastodon v0.0.6
 	github.com/nbd-wtf/go-nostr v0.18.5
 	golang.org/x/exp v0.0.0-20230321023759-10a507213a29
