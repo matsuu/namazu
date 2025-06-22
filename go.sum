@@ -157,8 +157,8 @@ github.com/kylemcc/twitter-text-go v0.0.0-20180726194232-7f582f6736ec h1:ZXWuspq
 github.com/kylemcc/twitter-text-go v0.0.0-20180726194232-7f582f6736ec/go.mod h1:voECJzdraJmolzPBgL9Z7ANwXf4oMXaTCsIkdiPpR/g=
 github.com/mailru/easyjson v0.7.7 h1:UGYAvKxe3sBsEDzO8ZeWOSlIQfWFlxbzLZe7hwFURr0=
 github.com/mailru/easyjson v0.7.7/go.mod h1:xzfreul335JAWq5oZzymOObrkdz5UnU4kGfJJLY9Nlc=
-github.com/matsuu/go-mixi2 v0.0.0-20250405135845-19ef7cda6332 h1:DWOe1iKx2mzTrfLz6dYZLMv1sRFHWTCDOsZ22pgnZaU=
-github.com/matsuu/go-mixi2 v0.0.0-20250405135845-19ef7cda6332/go.mod h1:dPncW730G/nJm5WP6T7sXc/sfCOQSSvx3Raf0zAYu6Y=
+github.com/matsuu/go-mixi2 v0.0.0-20250516121544-7a40752ddfa2 h1:ycFa8Q/vJ4xdPuYC28oTsYDcJrGERlGqknj+AyTHXPk=
+github.com/matsuu/go-mixi2 v0.0.0-20250516121544-7a40752ddfa2/go.mod h1:dPncW730G/nJm5WP6T7sXc/sfCOQSSvx3Raf0zAYu6Y=
 github.com/mattn/go-isatty v0.0.14/go.mod h1:7GGIvUiUoEMVVmxf/4nioHXj79iQHKdU27kJ6hsGG94=
 github.com/mattn/go-isatty v0.0.18 h1:DOKFKCQ7FNG2L1rbrmstDN4QVRdS89Nkh85u68Uwp98=
 github.com/mattn/go-isatty v0.0.18/go.mod h1:W+V8PltTTMOvKvAeJH7IuucS94S2C6jfK/D7dTCTo3Y=
