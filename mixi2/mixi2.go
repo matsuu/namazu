@@ -83,6 +83,10 @@ func Run(ctx context.Context, zmqEndpoint, authKey, authToken, userAgent string)
 				slog.Info("skip old serial", slog.Any("now", ev), slog.Any("prev", prev))
 				continue
 			}
+			// 続きは最終報のみpostする
+			if !content.IsLast {
+				continue
+			}
 			if prev.PostId == "" {
 				// 空になっているのはおかしいので警告
 				slog.Warn("Failed to get PostId", slog.Any("event", ev))
