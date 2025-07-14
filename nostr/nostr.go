@@ -21,6 +21,7 @@ const (
 var defaultRelays = []string{
 	// "ws://127.0.0.1:7001",
 
+	"wss://yabu.me",
 	"wss://relay.nostr.wirednet.jp",
 	"wss://relay-jp.nostr.wirednet.jp",
 	"wss://nostr.h3z.jp",
