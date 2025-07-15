@@ -24,10 +24,8 @@ var defaultRelays = []string{
 	"wss://yabu.me",
 	"wss://relay.nostr.wirednet.jp",
 	"wss://relay-jp.nostr.wirednet.jp",
-	"wss://nostr.h3z.jp",
 	"wss://nostr-relay.nokotaro.com",
 	"wss://nostr.holybea.com",
-	"wss://relay.nostr.or.jp",
 
 	"wss://relay.snort.social",
 	"wss://eden.nostr.land",
