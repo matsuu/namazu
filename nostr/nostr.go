@@ -204,6 +204,10 @@ func eventWorker(ctx context.Context, sub zmq4.Socket, chRelays []chan<- nostr.E
 				slog.Info("Skip old serial", slog.Any("now", ev), slog.Any("prev", prev))
 				continue
 			}
+			// 続きは最終報のみpostする
+			if !content.IsLast {
+				continue
+			}
 			if prev.RootId == "" {
 				// 空になっているのはおかしいので警告
 				slog.Warn("Failed to get RootId", slog.Any("event", ev))
